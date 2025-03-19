@@ -6,4 +6,4 @@
 - [Query Performance Optimization](#query-performance-optimization)
 ---
 ## Data Model
-![erd](https://github.com/user-attachments/assets/f85d8e2a-fd61-465c-b72a-394cf13ca46c)
+![erd](https://github.com/user-attachments/assets/f1f368a0-c1de-40da-bea0-a3bcd878b753)
