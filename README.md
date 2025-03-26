@@ -63,3 +63,154 @@ CREATE TABLE OrderItems (
 ---
 ## Inserting Data into E-commerce Database
 
+1. [Insert Categories](#1-insert-categories)
+2. [Insert Products](#2-insert-products)
+3. [Insert Customers](#3-insert-customers)
+4. [Insert Orders and OrderItems](#4-insert-orders-and-orderitems)
+
+### Insert Categories
+This procedure inserts 100 categories into the `Category` table
+```sql
+DELIMITER $$
+
+CREATE PROCEDURE InsertCategories()
+BEGIN
+    DECLARE i INT DEFAULT 1;
+    WHILE i <= 100 DO
+        INSERT INTO Category (category_name) 
+        VALUES (CONCAT('Category ', i));
+        SET i = i + 1;
+    END WHILE;
+END $$
+
+DELIMITER ;
+```
+### Insert Products
+This procedure inserts 100k products into the `Product` table
+```sql
+
+DELIMITER $$
+CREATE PROCEDURE InsertProducts()
+BEGIN
+    DECLARE i INT DEFAULT 0;
+    
+    WHILE i <= 100000 DO
+        INSERT INTO Product (category_ID, name, description, price, stock_quantity)
+        VALUES (
+            FLOOR(1 + RAND() * 100), -- Assuming 100 categories exist
+            CONCAT('Product ', i), 
+            CONCAT('Description for product ', i), 
+            ROUND(RAND() * 1000, 2), -- Random price between 0 and 1000
+            FLOOR(RAND() * 500) -- Random stock between 0 and 500
+        );
+        
+        SET i = i + 1;
+    END WHILE;
+    
+END $$
+
+DELIMITER ;
+
+```
+### Insert Customers
+This procedure inserts 1m Customers into the `Customer` table
+```sql
+
+DELIMITER $$
+
+CREATE PROCEDURE InsertCustomers()
+BEGIN
+    DECLARE i INT DEFAULT 1;
+    WHILE i <= 1000000 DO
+        INSERT INTO Customer (firsr_name, last_name, email, Password)
+        VALUES (
+            CONCAT('FirstName', i),                    -- First Name
+            CONCAT('LastName', i),                     -- Last Name
+            CONCAT('customer', i, '@example.com'),     -- Email
+            LEFT(SHA1(CONCAT('Pass', i)), 10)
+        );
+        SET i = i + 1;
+    END WHILE;
+END $$
+
+DELIMITER ;
+
+
+```
+### Insert  Orders and OrderItems
+This procedure inserts 1m orders and random orderItems, based on customers and products, and calculating the total order amount.
+```sql
+DELIMITER $$
+
+CREATE PROCEDURE InsertOrdersAndItems()
+BEGIN
+    DECLARE orderIndex INT DEFAULT 1;
+    DECLARE customerID INT;
+    DECLARE orderID INT;
+    DECLARE productCount INT;
+    DECLARE productIndex INT;
+    DECLARE productID INT;
+    DECLARE productPrice DECIMAL(6,2);
+
+
+    -- create 1000000 orders 
+    WHILE orderIndex <= 1000000 DO
+        -- Get Random customer_id
+        SELECT customer_ID INTO customerID
+        FROM Customer
+        ORDER BY RAND()
+        LIMIT 1;
+
+        -- Insert an order for this customer
+        INSERT INTO Orders (Customer_ID, order_date, total_amount)
+        VALUES (customerID, DATE_ADD('2023-01-01', INTERVAL FLOOR(RAND() * 1095) DAY), 0.00);
+
+        -- Get the last inserted order ID
+        SET orderID = orderIndex;
+
+        -- Get the total number of products
+        SELECT COUNT(*) INTO productCount FROM Product;
+
+        -- Insert 1 to 5 random items for this order
+        SET productIndex = 1;
+        WHILE productIndex <= FLOOR(1 + RAND() * 5) DO
+            -- Select a random product
+            SELECT Product_ID, price INTO productID, productPrice
+            FROM Product
+            ORDER BY RAND()
+            LIMIT 1;
+
+            -- Insert order item
+            INSERT INTO OrderItems (order_id, product_id, quantity, unit_price)
+            VALUES (orderID, productID, FLOOR(1 + RAND() * 5), productPrice);
+
+            -- Update order's total amount
+            UPDATE Orders
+            SET total_amount = total_amount + (FLOOR(1 + RAND() * 5) * productPrice)
+            WHERE order_ID = orderID;
+
+            SET productIndex = productIndex + 1;
+        END WHILE;
+
+        SET orderIndex = orderIndex + 1;
+    END WHILE;
+END $$
+
+DELIMITER ;
+
+```
+### Explanation:
+1. **Loop to create orders** and pick random `customer_id`
+    - Inserts a new order with the random date and a `total_amount` initialized to `0.00`.
+    - Random date from 2023 to 2025
+    `DATE_ADD('2023-01-01', INTERVAL FLOOR(RAND() * 1095) DAY)`
+        - `'2023-01-01'` is the starting date.
+        - `RAND() * 1095` generates a random number of days (1095 = 3 years × 365 days).
+        - `FLOOR()` ensures we get a whole number of days.
+        - `DATE_ADD()` shifts the date forward by that many days.
+2. **Insert Order Items**: For each order:
+    - Inserts **1 to 5** random order items. (loop)
+        - Selects a random product for each order item.
+        - Randomly generates quantity between **1 and 5**.
+        - Updates the order’s `total_amount` based on the inserted items.
+
