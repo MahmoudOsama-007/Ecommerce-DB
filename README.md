@@ -213,4 +213,22 @@ DELIMITER ;
         - Selects a random product for each order item.
         - Randomly generates quantity between **1 and 5**.
         - Updates the order’s `total_amount` based on the inserted items.
+---
+## SQL Queries (initial Query)
+1. [Retrieve the Total Number of Products in Each Category](#1-retrieve-the-total-number-of-products-in-each-category)
+2. [Find the Top Customers by Total Spending](#2-find-the-top-customers-by-total-spending)
+3. [Retrieve the Most Recent Orders with Customer Information (1000 Orders)](#3-retrieve-the-most-recent-orders-with-customer-information-1000-orders)
+4. [List Products with Low Stock Quantities](#4-list-products-with-low-stock-quantities)
+5. [Calculate the Revenue Generated from Each Product Category](#5-calculate-the-revenue-generated-from-each-product-category)
 
+## 1. Retrieve the Total Number of Products in Each Category
+
+This query retrieves the total number of products available in each category.
+
+```sql
+SELECT c.category_name,
+       count(p.product_ID) AS total_products
+FROM category c
+LEFT JOIN product p ON p.category_ID=c.category_id
+GROUP BY c.category_ID;
+```
