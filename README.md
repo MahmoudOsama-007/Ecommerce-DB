@@ -63,10 +63,10 @@ CREATE TABLE OrderItems (
 ---
 ## Inserting Data into E-commerce Database
 
-1. [Insert Categories](#1-insert-categories)
-2. [Insert Products](#2-insert-products)
-3. [Insert Customers](#3-insert-customers)
-4. [Insert Orders and OrderItems](#4-insert-orders-and-orderitems)
+1. [Insert Categories](#insert-categories)
+2. [Insert Products](#insert-products)
+3. [Insert Customers](#insert-customers)
+4. [Insert Orders and OrderItems](#insert-orders-and-orderitems)
 
 ### Insert Categories
 This procedure inserts 100 categories into the `Category` table
