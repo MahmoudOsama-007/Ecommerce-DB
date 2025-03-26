@@ -137,7 +137,7 @@ DELIMITER ;
 
 
 ```
-### Insert  Orders and OrderItems
+### Insert Orders and OrderItems
 This procedure inserts 1m orders and random orderItems, based on customers and products, and calculating the total order amount.
 ```sql
 DELIMITER $$
