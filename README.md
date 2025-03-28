@@ -308,11 +308,11 @@ GROUP BY c.category_name;
 ```
 ### Problem
 ![image](https://github.com/user-attachments/assets/b55383a7-9c9f-40a1-a83d-99b06d79f320)
-- grouping by c.category_name but does not have index on it
+- grouping by `c.category_name` but does not have index on it
 - JOIN operation before aggregation
 
 ### Optimization 
-### Aggregate before join	
+ Aggregate before join	
 ```sql
 SELECT
     c.category_id,
@@ -344,9 +344,30 @@ ORDER BY total_sum DESC
 LIMIT 10;
 ```
 ### Problem
-![image](https://github.com/user-attachments/assets/c26f87a0-f3ca-4303-8ea5-c780d3f19f42)
 
+- using `CONCAT` in the SELECT statement might add slight overhead if used repeatedly. This can be avoided by 
+    - returning first_name and last_name separately and combining them later in your application layer.
+    - OR add column `fullName`
+- JOIN operation before aggregation
+- table scan on `orders` because you will need to sort based on total_sum
+    - solve it by creating cover index ```sql CREATE idx_orders_customer_amount ON table_name (Customer_ID,total_amount);``` 
 ### Optimization
+CTE
+```sql 
+WITH TOTAL_SPENDING AS (
+SELECT Customer_ID, SUM(total_amount) AS TOTAL_SPENDING 
+     FROM orders 
+     GROUP BY Customer_ID 
+     ORDER BY TOTAL_SPENDING DESC 
+     LIMIT 10
+)
+SELECT c.Customer_ID, 
+    c.first_name, 
+    c.last_name,  TS.TOTAL_SPENDING
+FROM CUSTOMER C
+JOIN TOTAL_SPENDING TS ON C.CUSTOMER_ID = TS.CUSTOMER_ID;
+```
+
 ## 3. Retrieve the Most Recent Orders with Customer Information (1000 Orders)
 ### initial Query
 ```sql
