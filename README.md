@@ -213,6 +213,84 @@ DELIMITER ;
         - Selects a random product for each order item.
         - Randomly generates quantity between **1 and 5**.
         - Updates the order’s `total_amount` based on the inserted items.
+### OR you can use py script to make it faster
+```python
+import mysql.connector
+import random
+from datetime import datetime, timedelta
+
+# Connect to MySQL
+conn = mysql.connector.connect(
+    host='localhost',
+    user='root',
+    password='pass',
+    database='ecommercedb'
+)
+cursor = conn.cursor()
+
+# Fetch all customer IDs and product info in memory
+cursor.execute("SELECT customer_ID FROM Customer")
+customer_ids = [row[0] for row in cursor.fetchall()]
+
+cursor.execute("SELECT product_ID, price FROM Product")
+products = cursor.fetchall()
+
+# Batch size
+ORDER_BATCH = 10000
+TOTAL_ORDERS = 3500000
+
+print("Starting insert...")
+
+order_id = 1
+for batch_start in range(0, TOTAL_ORDERS, ORDER_BATCH):
+    orders = []
+    order_items = []
+
+    for _ in range(ORDER_BATCH):
+        customer_id = random.choice(customer_ids)
+        order_date = datetime(2023, 1, 1) + timedelta(days=random.randint(0, 1095))
+        orders.append((order_id, customer_id, order_date.strftime('%Y-%m-%d'), 0.00))
+
+        # Random number of products per order
+        for _ in range(random.randint(1, 5)):
+            product_id, price = random.choice(products)
+            quantity = random.randint(1, 5)
+            order_items.append((order_id, product_id, quantity, price))
+
+        order_id += 1
+
+    # Insert orders
+    cursor.executemany("""
+        INSERT INTO Orders (order_ID, customer_ID, order_date, total_amount)
+        VALUES (%s, %s, %s, %s)
+    """, orders)
+
+    # Insert order items
+    cursor.executemany("""
+        INSERT INTO OrderItems (order_ID, product_ID, quantity, unit_price)
+        VALUES (%s, %s, %s, %s)
+    """, order_items)
+
+    conn.commit()
+    print(f"Inserted orders {batch_start + 1} to {batch_start + ORDER_BATCH}")
+
+# Update total_amounts in one query
+cursor.execute("""
+    UPDATE Orders o
+    JOIN (
+        SELECT order_ID, SUM(quantity * unit_price) AS total
+        FROM OrderItems
+        GROUP BY order_ID
+    ) oi ON o.order_ID = oi.order_ID
+    SET o.total_amount = oi.total;
+""")
+conn.commit()
+
+print("All done!")
+cursor.close()
+conn.close()
+
+```
 ---
 ## SQL Queries (initial Query)
 1. [Retrieve the Total Number of Products in Each Category](#1-retrieve-the-total-number-of-products-in-each-category)
