@@ -386,15 +386,15 @@ LIMIT 1000;
 ```
 ### Problem
 ![image](https://github.com/user-attachments/assets/f3d62df4-43eb-4a31-865c-eb82e3613bbb)
-- Sorting on order_date Without an Index
+- Sorting on `order_date` Without an Index
 - Sorting large dataset after join
 
 ### Optimization 
-CTE 
 - create index on order_data
     ```sql
         CREATE Index idx_orders_data ON orders(order_date);
     ```
+CTE 
 ```sql
 with recent_orders as (
 	SELECT Customer_ID,
