@@ -304,10 +304,33 @@ SELECT c.category_name,
        count(p.product_ID) AS total_products
 FROM category c
 LEFT JOIN product p ON p.category_ID=c.category_id
-GROUP BY c.category_ID;
+GROUP BY c.category_name;
 ```
 ### Problem
-### Optimization
+![image](https://github.com/user-attachments/assets/b55383a7-9c9f-40a1-a83d-99b06d79f320)
+- grouping by c.category_name but does not have index on it
+- JOIN operation before aggregation
+
+### Optimization 
+### Aggregate before join	
+```sql
+SELECT
+    c.category_id,
+    p.product_count AS total_products
+FROM
+    category c
+INNER JOIN (
+    SELECT
+        category_id,
+        COUNT(*) as product_count
+    FROM
+        product
+    GROUP BY
+        category_id
+) p ON c.category_id = p.category_id;
+```
+![image](https://github.com/user-attachments/assets/adf6d217-fa65-4919-a383-d54a3d232e59)
+
 ## 2. Find the Top Customers by Total Spending
 ### initial Query
 ```sql
@@ -321,6 +344,8 @@ ORDER BY total_sum DESC
 LIMIT 10;
 ```
 ### Problem
+![image](https://github.com/user-attachments/assets/c26f87a0-f3ca-4303-8ea5-c780d3f19f42)
+
 ### Optimization
 ## 3. Retrieve the Most Recent Orders with Customer Information (1000 Orders)
 ### initial Query
@@ -335,6 +360,8 @@ ORDER BY order_date DESC
 LIMIT 1000;
 ```
 ### Problem
+![image](https://github.com/user-attachments/assets/f3d62df4-43eb-4a31-865c-eb82e3613bbb)
+
 ### Optimization
 ## 4. List Products with Low Stock Quantities
 
@@ -347,6 +374,8 @@ FROM product
 WHERE stock_quantity<10;
 ```
 ### Problem
+![image](https://github.com/user-attachments/assets/56fa1ad7-f9c7-40a8-87ba-2e71b7f7d16e)
+
 ### Optimization
 ## 5. Calculate the Revenue Generated from Each Product Category
 ### initial Query
