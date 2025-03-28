@@ -221,10 +221,7 @@ from datetime import datetime, timedelta
 
 # Connect to MySQL
 conn = mysql.connector.connect(
-    host='localhost',
-    user='root',
-    password='pass',
-    database='ecommercedb'
+    host="localhost", user="root", password="mahmoud", database="ecommercedb"
 )
 cursor = conn.cursor()
 
@@ -237,7 +234,7 @@ products = cursor.fetchall()
 
 # Batch size
 ORDER_BATCH = 10000
-TOTAL_ORDERS = 3500000
+TOTAL_ORDERS = 35000000
 
 print("Starting insert...")
 
@@ -249,46 +246,46 @@ for batch_start in range(0, TOTAL_ORDERS, ORDER_BATCH):
     for _ in range(ORDER_BATCH):
         customer_id = random.choice(customer_ids)
         order_date = datetime(2023, 1, 1) + timedelta(days=random.randint(0, 1095))
-        orders.append((order_id, customer_id, order_date.strftime('%Y-%m-%d'), 0.00))
+        order_total = 0
 
         # Random number of products per order
         for _ in range(random.randint(1, 5)):
             product_id, price = random.choice(products)
             quantity = random.randint(1, 5)
             order_items.append((order_id, product_id, quantity, price))
+            totalprice = price * quantity
+            order_total += totalprice
+
+        orders.append(
+            (order_id, customer_id, order_date.strftime("%Y-%m-%d"), order_total)
+        )
 
         order_id += 1
 
     # Insert orders
-    cursor.executemany("""
+    cursor.executemany(
+        """
         INSERT INTO Orders (order_ID, customer_ID, order_date, total_amount)
         VALUES (%s, %s, %s, %s)
-    """, orders)
+    """,
+        orders,
+    )
 
     # Insert order items
-    cursor.executemany("""
+    cursor.executemany(
+        """
         INSERT INTO OrderItems (order_ID, product_ID, quantity, unit_price)
         VALUES (%s, %s, %s, %s)
-    """, order_items)
+    """,
+        order_items,
+    )
 
     conn.commit()
     print(f"Inserted orders {batch_start + 1} to {batch_start + ORDER_BATCH}")
-
-# Update total_amounts in one query
-cursor.execute("""
-    UPDATE Orders o
-    JOIN (
-        SELECT order_ID, SUM(quantity * unit_price) AS total
-        FROM OrderItems
-        GROUP BY order_ID
-    ) oi ON o.order_ID = oi.order_ID
-    SET o.total_amount = oi.total;
-""")
-conn.commit()
-
 print("All done!")
 cursor.close()
 conn.close()
+
 
 ```
 ---
