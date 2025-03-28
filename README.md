@@ -350,8 +350,12 @@ LIMIT 10;
     - OR add column `fullName`
 - JOIN operation before aggregation
 - table scan on `orders` because you will need to sort based on total_sum
-    - solve it by creating cover index ```sql CREATE idx_orders_customer_amount ON table_name (Customer_ID,total_amount);``` 
+    - solve it by creating 
 ### Optimization
+- create cover index
+  ```sql
+  CREATE index idx_orders_customer_amount ON orders (Customer_ID,total_amount);
+  ```
 CTE
 ```sql 
 WITH TOTAL_SPENDING AS (
@@ -377,13 +381,35 @@ SELECT c.customer_ID,
        o.order_date
 FROM orders o
 JOIN customer c ON c.customer_ID=o.customer_ID
-ORDER BY order_date DESC
+ORDER BY o.order_date DESC
 LIMIT 1000;
 ```
 ### Problem
 ![image](https://github.com/user-attachments/assets/f3d62df4-43eb-4a31-865c-eb82e3613bbb)
+- Sorting on order_date Without an Index
+- Sorting large dataset after join
 
-### Optimization
+### Optimization 
+CTE 
+- create index on order_data
+    ```sql
+        CREATE Index idx_orders_data ON orders(order_date);
+    ```
+```sql
+with recent_orders as (
+	SELECT Customer_ID,
+          order_date
+   FROM orders
+   ORDER BY order_date DESC
+   LIMIT 1000
+)SELECT concat(c.first_name, ' ', c.last_name) AS customer_name,
+       recent_orders .order_date
+FROM
+  recent_orders 
+JOIN customer c ON c.customer_ID=recent_orders .customer_ID;
+```
+![image](https://github.com/user-attachments/assets/f5b17b49-7209-4fc9-b473-7c69d9cae620)
+
 ## 4. List Products with Low Stock Quantities
 
 ### initial Query
@@ -396,8 +422,14 @@ WHERE stock_quantity<10;
 ```
 ### Problem
 ![image](https://github.com/user-attachments/assets/56fa1ad7-f9c7-40a8-87ba-2e71b7f7d16e)
-
+- table scan stock quantity
 ### Optimization
+Create index on 
+```sql
+create INDEX idx_stock_quantity on product(stock_quantity)
+```
+![image](https://github.com/user-attachments/assets/3d813535-c72c-47c4-9c80-bd67347dd6cf)
+
 ## 5. Calculate the Revenue Generated from Each Product Category
 ### initial Query
 ```sql
