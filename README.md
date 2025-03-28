@@ -3,7 +3,7 @@
 - [Overview](#overview)
 - [Data Model](#data-model)
 - [Inserting Data into E-commerce Database](#inserting-data-into-e-commerce-database)
-- [SQL Queries](#sql-queries-initial-query)
+- [SQL Queries](#sql-queries)
 - [Query Performance Optimization](#query-performance-optimization)
 ---
 ## Overview
@@ -234,7 +234,7 @@ products = cursor.fetchall()
 
 # Batch size
 ORDER_BATCH = 10000
-TOTAL_ORDERS = 35000000
+TOTAL_ORDERS = 3500000
 
 print("Starting insert...")
 
@@ -289,7 +289,7 @@ conn.close()
 
 ```
 ---
-## SQL Queries (initial Query)
+## SQL Queries
 1. [Retrieve the Total Number of Products in Each Category](#1-retrieve-the-total-number-of-products-in-each-category)
 2. [Find the Top Customers by Total Spending](#2-find-the-top-customers-by-total-spending)
 3. [Retrieve the Most Recent Orders with Customer Information (1000 Orders)](#3-retrieve-the-most-recent-orders-with-customer-information-1000-orders)
@@ -298,8 +298,7 @@ conn.close()
 
 ## 1. Retrieve the Total Number of Products in Each Category
 
-This query retrieves the total number of products available in each category.
-
+### initial Query
 ```sql
 SELECT c.category_name,
        count(p.product_ID) AS total_products
@@ -307,3 +306,60 @@ FROM category c
 LEFT JOIN product p ON p.category_ID=c.category_id
 GROUP BY c.category_ID;
 ```
+### Problem
+### Optimization
+## 2. Find the Top Customers by Total Spending
+### initial Query
+```sql
+SELECT concat(c.first_name, ' ', c.last_name)AS customer_name,
+       sum(total_amount) AS total_sum,
+       c.Customer_ID
+FROM orders o
+JOIN customer c ON o.customer_id=c.customer_id
+GROUP BY Customer_ID
+ORDER BY total_sum DESC
+LIMIT 10;
+```
+### Problem
+### Optimization
+## 3. Retrieve the Most Recent Orders with Customer Information (1000 Orders)
+### initial Query
+```sql
+SELECT c.customer_ID,
+       concat(c.first_name, ' ', c.last_name) AS customer_name,
+       o.order_ID,
+       o.order_date
+FROM orders o
+JOIN customer c ON c.customer_ID=o.customer_ID
+ORDER BY order_date DESC
+LIMIT 1000;
+```
+### Problem
+### Optimization
+## 4. List Products with Low Stock Quantities
+
+### initial Query
+```sql
+SELECT name,
+       Product_ID,
+       stock_quantity
+FROM product
+WHERE stock_quantity<10;
+```
+### Problem
+### Optimization
+## 5. Calculate the Revenue Generated from Each Product Category
+### initial Query
+```sql
+SELECT p.category_ID,
+       sum(v.total_price) AS Revenue
+FROM product p
+JOIN
+  (SELECT product_id,
+          sum(quantity) * max(unit_price) AS total_price
+   FROM orderitems
+   GROUP BY product_id) AS v ON v.product_id = p.product_id
+GROUP BY p.category_ID;
+```
+### Problem
+### Optimization
