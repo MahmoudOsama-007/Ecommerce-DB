@@ -445,3 +445,12 @@ GROUP BY p.category_ID;
 ```
 ### Problem
 ### Optimization
+---
+## Query Performance Optimization
+| Query Description                    | Original Execution Time | Optimized Execution Time |
+| ------------------------------------ | ----------------------- | ------------------------ |
+| Products per Category                | 102 ms                  | 23.4 ms                  |
+| Top Customers by Spending            | -                       | - ms                     |
+| Recent Orders with Customer Info     | 3047 ms                 | 413 ms                   |
+| Low Stock Products                   | 78 ms              	 | 8 ms      		    |
+| Category Revenue                     | -	                 | -                        |
