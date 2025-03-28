@@ -3,7 +3,7 @@
 - [Overview](#overview)
 - [Data Model](#data-model)
 - [Inserting Data into E-commerce Database](#inserting-data-into-e-commerce-database)
-- [SQL Queries](#sql-queries)
+- [SQL Queries](##sql-queries-initial-query)
 - [Query Performance Optimization](#query-performance-optimization)
 ---
 ## Overview
@@ -138,7 +138,7 @@ DELIMITER ;
 
 ```
 ### Insert Orders and OrderItems
-This procedure inserts 1m orders and random orderItems, based on customers and products, and calculating the total order amount.
+This procedure inserts 3.5m orders and random orderItems, based on customers and products, and calculating the total order amount.
 ```sql
 DELIMITER $$
 
