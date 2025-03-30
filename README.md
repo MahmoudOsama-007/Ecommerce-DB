@@ -343,14 +343,16 @@ GROUP BY Customer_ID
 ORDER BY total_sum DESC
 LIMIT 10;
 ```
+![image](https://github.com/user-attachments/assets/ed44b381-108f-49d2-9c05-26018a9d7f75)
+
 ### Problem
 
 - using `CONCAT` in the SELECT statement might add slight overhead if used repeatedly. This can be avoided by 
     - returning first_name and last_name separately and combining them later in your application layer.
     - OR add column `fullName`
 - JOIN operation before aggregation
-- table scan on `orders` because you will need to sort based on total_sum
-    - solve it by creating 
+- table scan on `orders` because you will need to sort based on total_sum -> sum(total_amount)
+    - solve it by creating cover index
 ### Optimization
 - create cover index
   ```sql
@@ -371,6 +373,7 @@ SELECT c.Customer_ID,
 FROM CUSTOMER C
 JOIN TOTAL_SPENDING TS ON C.CUSTOMER_ID = TS.CUSTOMER_ID;
 ```
+![image](https://github.com/user-attachments/assets/0ac284d8-d9c3-4755-81ab-37858a47741f)
 
 ## 3. Retrieve the Most Recent Orders with Customer Information (1000 Orders)
 ### initial Query
@@ -450,7 +453,7 @@ GROUP BY p.category_ID;
 | Query Description                    | Original Execution Time | Optimized Execution Time |
 | ------------------------------------ | ----------------------- | ------------------------ |
 | Products per Category                | 102 ms                  | 23.4 ms                  |
-| Top Customers by Spending            | -                       | - ms                     |
+| Top Customers by Spending            | grater than 30000 ms    | 1670 ms                  |
 | Recent Orders with Customer Info     | 3047 ms                 | 413 ms                   |
 | Low Stock Products                   | 78 ms              	 | 8 ms      		    |
 | Category Revenue                     | -	                 | -                        |
