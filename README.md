@@ -437,17 +437,65 @@ create INDEX idx_stock_quantity on product(stock_quantity)
 ### initial Query
 ```sql
 SELECT p.category_ID,
-       sum(v.total_price) AS Revenue
+       sum(sub.total_price) AS Revenue
 FROM product p
 JOIN
   (SELECT product_id,
           sum(quantity) * max(unit_price) AS total_price
    FROM orderitems
-   GROUP BY product_id) AS v ON v.product_id = p.product_id
+   GROUP BY product_id) AS sub ON sub.product_id = p.product_id
 GROUP BY p.category_ID;
 ```
 ### Problem
+![image](https://github.com/user-attachments/assets/65c77b0b-0e0b-4781-b4e8-935c4586aa0b)
+### 1. Nested Loop Join
+- nested loop (inner join), which is highly inefficient for large datasets
+
+### 2. Subquery Performance
+```sql 
+SELECT product_id,
+       sum(quantity) * max(unit_price) AS total_price
+FROM orderitems
+GROUP BY product_id
+
+```
+- performs an aggregation (GROUP BY) on `orderitems`, which can be slow if `orderitems` contains many rows.
+
+- Inefficient aggregation strategy: The optimizer might not be able to use indexes effectively for both `SUM(quantity)` and `MAX(unit_price)`.
+- No pre-aggregated data
+
+### 3. Index Scans on Large Tables
+- The query plan shows an index scan on orderitems using `product_id` and `orderitems` table likely has millions    of rows, making this scan expensive.
+- Solution: A composite index on (`product_id`, `unit_price`, `quantity`) could speed this up.
+
 ### Optimization
+
+### Approche 1: CTE + CoverIndex
+#### Use an Indexed Approach for Aggregation
+- Instead of computing `SUM(quantity) * MAX(unit_price)`, create an index on `orderitems(product_id, quantity, unit_price)`.
+```sql
+CREATE INDEX idx_orderitems1 ON orderitems(product_id, unit_price, quantity);
+CREATE INDEX idx_product ON product(product_id, category_ID);
+
+```
+#### More Efficient JOIN Strategy by using CTE  instead of aggregation in a subquery
+ ```sql 
+ WITH orderitems_agg AS (
+    SELECT product_id, 
+           SUM(quantity) AS total_quantity,
+           MAX(unit_price) AS max_price
+    FROM orderitems
+    GROUP BY product_id
+)
+SELECT p.category_ID, 
+       SUM(o.total_quantity * o.max_price) AS Revenue
+FROM product p
+JOIN orderitems_agg o ON p.product_id = o.product_id
+GROUP BY p.category_ID;
+
+ ```
+![image](https://github.com/user-attachments/assets/75f53661-9591-463f-a924-1c75fb8d17a1)
+### Approche 2: 
 ---
 ## Query Performance Optimization
 | Query Description                    | Original Execution Time | Optimized Execution Time |
