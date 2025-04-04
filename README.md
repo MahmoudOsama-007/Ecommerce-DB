@@ -122,7 +122,7 @@ CREATE PROCEDURE InsertCustomers()
 BEGIN
     DECLARE i INT DEFAULT 1;
     WHILE i <= 1000000 DO
-        INSERT INTO Customer (firsr_name, last_name, email, Password)
+        INSERT INTO Customer (first_name, last_name, email, Password)
         VALUES (
             CONCAT('FirstName', i),                    -- First Name
             CONCAT('LastName', i),                     -- Last Name
