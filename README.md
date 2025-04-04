@@ -45,7 +45,7 @@ CREATE TABLE Orders (
     order_ID INT PRIMARY KEY AUTO_INCREMENT,
     Customer_ID INT NOT NULL,
     order_date DATE,
-    total_amount DECIMAL(6,2),
+    total_amount DECIMAL(10,2),
     FOREIGN KEY (Customer_ID) REFERENCES Customer(customer_ID)
 );
 
