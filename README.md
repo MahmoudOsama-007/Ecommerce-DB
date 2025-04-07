@@ -1,4 +1,4 @@
-# Ecommerce-DB
+![image](https://github.com/user-attachments/assets/7905bc03-167e-4b85-9206-660eacf8c7f8)# Ecommerce-DB
 ## Table of Contents
 - [Overview](#overview)
 - [Data Model](#data-model)
@@ -495,7 +495,60 @@ GROUP BY p.category_ID;
 
  ```
 ![image](https://github.com/user-attachments/assets/75f53661-9591-463f-a924-1c75fb8d17a1)
-### Approche 2: 
+### Approche 2: Denormalization
+#### 1. Create a `category_revenue` Table
+```sql
+CREATE TABLE category_revenue (
+    category_id INT,
+    category_name VARCHAR(100),
+    total_amount DECIMAL(15,2),
+    PRIMARY KEY (category_id)
+);
+
+```
+#### 2. Populate the `category_revenue` Table
+```sql
+INSERT INTO category_revenue (category_id, category_name, total_amount)
+SELECT 
+    c.category_id,
+    c.category_name,
+    SUM(oi.unit_price * oi.quantity) AS total_amount
+FROM 
+    OrderItems oi
+JOIN 
+    Product p ON oi.product_id = p.Product_ID
+JOIN 
+    Category c ON p.category_ID = c.category_id
+GROUP BY 
+    c.category_id, c.category_name;
+
+```
+#### 3. Trigger-Based ON Insert new OrderItem to `OrderItems` Table
+```sql
+CREATE TRIGGER category_revenue_log
+AFTER INSERT ON OrderItems
+FOR EACH ROW
+BEGIN
+    INSERT INTO category_revenue (category_ID, category_name, revenue)
+    VALUES (
+        (SELECT category_ID FROM Product WHERE Product_ID = NEW.product_id),
+        (SELECT category_name FROM Category WHERE category_id = (SELECT category_ID FROM Product WHERE Product_ID = NEW.product_id)),
+        NEW.quantity * NEW.unit_price
+    )
+    ON DUPLICATE KEY UPDATE
+        revenue = revenue + NEW.quantity * NEW.unit_price;
+END;
+
+```
+- This trigger inserts a new row into `category_revenue` table if `category_ID` does not already exist.
+
+- If a row with the same `category_ID` already exists the trigger updates the existing row. Specifically, it adds the `new revenue (NEW.quantity * NEW.unit_price)` to the existing revenue value.
+#### 4. Query to Use the Denormalized Table
+```sql
+select * from category_revenue;
+```
+![image](https://github.com/user-attachments/assets/093e3a7e-81ef-4af6-a4c5-610c49532f62)
+
 ---
 ## Query Performance Optimization
 | Query Description                    | Original Execution Time | Optimized Execution Time |
@@ -504,4 +557,4 @@ GROUP BY p.category_ID;
 | Top Customers by Spending            | grater than 30000 ms    | 1670 ms                  |
 | Recent Orders with Customer Info     | 3047 ms                 | 413 ms                   |
 | Low Stock Products                   | 78 ms              	 | 8 ms      		    |
-| Category Revenue                     | -	                 | -                        |
+| Category Revenue                     | grater than 30000 ms 	 | 1 ms                     |
