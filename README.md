@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/7905bc03-167e-4b85-9206-660eacf8c7f8)# Ecommerce-DB
+# Ecommerce-DB
 ## Table of Contents
 - [Overview](#overview)
 - [Data Model](#data-model)
